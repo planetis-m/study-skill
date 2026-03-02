@@ -35,7 +35,7 @@ The skill includes an OCR cache workflow to avoid re-running `pdfocr` for repeat
   - Recommended: `DEEPINFRA_API_KEY`
   - Alternative: `api_key` in `config.json` next to `pdfocr`
   - Precedence: env var overrides `config.json`
-  - If `pdfocr` on PATH is a symlink, resolve real binary path before checking `config.json`
+  - Runtime flow is OCR-first: run OCR, then handle auth/config errors if reported
 
 ## Missing `pdfocr` Fallback
 

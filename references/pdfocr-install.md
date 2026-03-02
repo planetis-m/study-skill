@@ -20,14 +20,12 @@ Release page:
 ```bash
 set -euo pipefail
 mkdir -p "$HOME/.local/opt/pdfocr" "$HOME/.local/bin"
-tmp_dir="$(mktemp -d)"
-curl -fsSL -o "$tmp_dir/pdfocr.tar.gz" \
+curl -fsSL -o "$HOME/.local/opt/pdfocr/pdfocr.tar.gz" \
   "https://github.com/planetis-m/pdfocr/releases/latest/download/pdfocr-linux-x86_64.tar.gz"
 rm -rf "$HOME/.local/opt/pdfocr/current"
 mkdir -p "$HOME/.local/opt/pdfocr/current"
-tar -xzf "$tmp_dir/pdfocr.tar.gz" -C "$HOME/.local/opt/pdfocr/current"
-pdfocr_bin="$(find "$HOME/.local/opt/pdfocr/current" -type f -name pdfocr | head -n1)"
-ln -sfn "$pdfocr_bin" "$HOME/.local/bin/pdfocr"
+tar -xzf "$HOME/.local/opt/pdfocr/pdfocr.tar.gz" -C "$HOME/.local/opt/pdfocr/current"
+ln -sfn "$HOME/.local/opt/pdfocr/current/pdfocr" "$HOME/.local/bin/pdfocr"
 export PATH="$HOME/.local/bin:$PATH"
 pdfocr --help >/dev/null
 ```
@@ -37,14 +35,12 @@ pdfocr --help >/dev/null
 ```bash
 set -euo pipefail
 mkdir -p "$HOME/.local/opt/pdfocr" "$HOME/.local/bin"
-tmp_dir="$(mktemp -d)"
-curl -fsSL -o "$tmp_dir/pdfocr.tar.gz" \
+curl -fsSL -o "$HOME/.local/opt/pdfocr/pdfocr.tar.gz" \
   "https://github.com/planetis-m/pdfocr/releases/latest/download/pdfocr-macos-arm64.tar.gz"
 rm -rf "$HOME/.local/opt/pdfocr/current"
 mkdir -p "$HOME/.local/opt/pdfocr/current"
-tar -xzf "$tmp_dir/pdfocr.tar.gz" -C "$HOME/.local/opt/pdfocr/current"
-pdfocr_bin="$(find "$HOME/.local/opt/pdfocr/current" -type f -name pdfocr | head -n1)"
-ln -sfn "$pdfocr_bin" "$HOME/.local/bin/pdfocr"
+tar -xzf "$HOME/.local/opt/pdfocr/pdfocr.tar.gz" -C "$HOME/.local/opt/pdfocr/current"
+ln -sfn "$HOME/.local/opt/pdfocr/current/pdfocr" "$HOME/.local/bin/pdfocr"
 export PATH="$HOME/.local/bin:$PATH"
 pdfocr --help >/dev/null
 ```
@@ -101,9 +97,8 @@ Edit `config.json` in the same directory as the real `pdfocr` executable and set
 
 ### Credential detection rule
 
-- Resolve `command -v pdfocr` to its real target path.
-- Check `config.json` next to that real binary.
-- If the PATH entry is a symlink, do not check `config.json` in the symlink directory.
+- Check `config.json` next to the actual `pdfocr` binary file.
+- If `~/.local/bin/pdfocr` is a symlink, use the binary directory under `~/.local/opt/pdfocr/current/`.
 
 ## Notes
 

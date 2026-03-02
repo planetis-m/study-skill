@@ -11,15 +11,26 @@ cache_dir=".study-assistant-cache"
 mkdir -p "$cache_dir"
 cache_raw="$cache_dir/current.raw.jsonl"
 cache_meta="$cache_dir/current.meta"
-page_sel="${PAGE_SELECTION:-all-pages}"
+page_sel="$PAGE_SELECTION"
+if [ -z "$page_sel" ]; then
+  page_sel="all-pages"
+fi
 ```
 
 ## 2. Check Cache
 
 ```bash
-if [ -s "$cache_raw" ] && [ -f "$cache_meta" ] && \
-   grep -Fqx "pdf_input=$PDF_INPUT" "$cache_meta" && \
-   grep -Fqx "page_sel=$page_sel" "$cache_meta"; then
+cache_hit="no"
+if [ -s "$cache_raw" ]; then
+  if [ -f "$cache_meta" ]; then
+    if grep -Fqx "pdf_input=$PDF_INPUT" "$cache_meta"; then
+      if grep -Fqx "page_sel=$page_sel" "$cache_meta"; then
+        cache_hit="yes"
+      fi
+    fi
+  fi
+fi
+if [ "$cache_hit" = "yes" ]; then
   echo "OCR cache hit: $cache_raw"
 fi
 ```
