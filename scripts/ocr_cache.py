@@ -8,7 +8,6 @@ import hashlib
 import json
 import os
 import sys
-import tempfile
 from pathlib import Path
 
 EXIT_OK = 0
@@ -58,66 +57,50 @@ def cmd_check(args: argparse.Namespace) -> int:
     return EXIT_OK if cache_hit else EXIT_CACHE_MISS
 
 
-def cmd_store(args: argparse.Namespace) -> int:
-    key, raw_path = build_key_and_raw_path(args.pdf_input, args.page_sel)
-    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+def validate_jsonl_file(input_jsonl: Path) -> None:
+    saw_ok_text = False
+    with input_jsonl.open("r", encoding="utf-8") as handle:
+        for line_no, line in enumerate(handle, start=1):
+            line = line.strip()
+            if not line:
+                continue
 
-    tmp_path: Path | None = None
-    committed = False
+            try:
+                obj = json.loads(line)
+            except json.JSONDecodeError as exc:
+                raise CacheCliError(f"Error: invalid JSONL at line {line_no}: {exc.msg}", EXIT_CACHE_MISS)
+
+            if obj.get("status") != "ok":
+                raise CacheCliError(f"Error: non-ok OCR record at line {line_no}", EXIT_CACHE_MISS)
+
+            text = obj.get("text")
+            if not isinstance(text, str) or not text:
+                raise CacheCliError(f"Error: missing text in ok OCR record at line {line_no}", EXIT_CACHE_MISS)
+            saw_ok_text = True
+
+    if not saw_ok_text:
+        raise CacheCliError("Error: OCR JSONL has no ok text.", EXIT_CACHE_MISS)
+
+
+def cmd_validate(args: argparse.Namespace) -> int:
+    input_jsonl = Path(os.path.expanduser(args.input_jsonl))
+    if not input_jsonl.exists() or not input_jsonl.is_file():
+        raise CacheCliError(f"Error: --input-jsonl file not found: {input_jsonl}", EXIT_INVALID_ARGS)
 
     try:
-        with tempfile.NamedTemporaryFile("wb", dir=CACHE_DIR, delete=False, prefix=f"{key}.", suffix=".tmp") as handle:
-            tmp_path = Path(handle.name)
-            while True:
-                chunk = sys.stdin.buffer.read(65536)
-                if not chunk:
-                    break
-                handle.write(chunk)
-
-        if tmp_path is None:
-            raise CacheCliError("Error: failed to create temporary cache file.", EXIT_RUNTIME_ERROR)
-
-        with tmp_path.open("r", encoding="utf-8") as handle:
-            for line in handle:
-                line = line.strip()
-                if not line:
-                    continue
-
-                try:
-                    obj = json.loads(line)
-                except json.JSONDecodeError:
-                    print(to_json({"stored": False}))
-                    return EXIT_CACHE_MISS
-
-                status = obj.get("status")
-                if status == "ok":
-                    text = obj.get("text")
-                    if isinstance(text, str) and text:
-                        continue
-                    print(to_json({"stored": False}))
-                    return EXIT_CACHE_MISS
-                else:
-                    print(to_json({"stored": False}))
-                    return EXIT_CACHE_MISS
-
-        if tmp_path.stat().st_size == 0:
-            print(to_json({"stored": False}))
+        validate_jsonl_file(input_jsonl)
+    except CacheCliError as exc:
+        if exc.exit_code == EXIT_CACHE_MISS:
+            print(to_json({"valid": False}))
             return EXIT_CACHE_MISS
+        raise
 
-        os.replace(tmp_path, raw_path)
-        committed = True
-        print(to_json({"stored": True}))
-        return EXIT_OK
-    finally:
-        if tmp_path is not None and not committed:
-            try:
-                tmp_path.unlink()
-            except FileNotFoundError:
-                pass
+    print(to_json({"valid": True}))
+    return EXIT_OK
 
 
 def cmd_read(args: argparse.Namespace) -> int:
-    key, raw_path = build_key_and_raw_path(args.pdf_input, args.page_sel)
+    _, raw_path = build_key_and_raw_path(args.pdf_input, args.page_sel)
     if not raw_path.exists():
         raise CacheCliError(f"Error: raw cache file not found: {raw_path}", EXIT_CACHE_MISS)
 
@@ -159,7 +142,7 @@ def build_parser() -> argparse.ArgumentParser:
         epilog=(
             "Commands:\n"
             "  check        Return hit/miss for one PDF + page selection\n"
-            "  store        Store OCR JSONL only when all parsed pages are ok\n"
+            "  validate     Validate OCR JSONL contains only non-empty ok records\n"
             "  read         Return concatenated text from cached all-ok JSONL\n\n"
             "Exit codes:\n"
             f"  {EXIT_OK}=success, {EXIT_RUNTIME_ERROR}=runtime error, "
@@ -170,13 +153,16 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers = parser.add_subparsers(dest="subcommand", required=True)
     for name, fn, help_text in (
         ("check", cmd_check, "Check cache for one PDF/page selection."),
-        ("store", cmd_store, "Store OCR JSONL only when all parsed pages are ok."),
         ("read", cmd_read, "Return concatenated text from one cached all-ok JSONL entry."),
     ):
         sub = subparsers.add_parser(name, help=help_text)
         sub.add_argument("--pdf-input", required=True, help="Path to PDF.")
         sub.add_argument("--page-sel", default=DEFAULT_PAGE_SEL, help=f'Page selection (default: "{DEFAULT_PAGE_SEL}").')
         sub.set_defaults(func=fn)
+
+    validate_sub = subparsers.add_parser("validate", help="Validate OCR JSONL has only non-empty ok records.")
+    validate_sub.add_argument("--input-jsonl", required=True, help="Path to OCR JSONL output file.")
+    validate_sub.set_defaults(func=cmd_validate)
 
     return parser
 

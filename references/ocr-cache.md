@@ -27,29 +27,44 @@ python3 scripts/ocr_cache.py check \
 ```
 
 Interpretation:
-- exit code `0`: cache hit, skip `pdfocr`
+- exit code `0`: cache hit, skip `pdfocr` and use `read`
 - exit code `3`: cache miss, continue to step 3
 - exit code `1` or `2`: runtime/argument error, stop and report
 
-The command prints JSON to stdout with `cache_hit`, `key`, and `raw_path`.
+On cache miss, copy `raw_path` from the JSON output and set it explicitly:
+```bash
+RAW_PATH=".study-assistant-cache/<key>.jsonl"
+```
 
-## 3. Populate Cache on Miss
+## 3. Populate Cache on Miss (No Pipe)
 
 Before running `pdfocr`, request user approval for unrestricted network execution.
 
-Run OCR and pipe stdout directly into the cache script:
-
 ```bash
-set -o pipefail
-pdfocr "$PDF_INPUT" --pages:"$page_sel" | python3 scripts/ocr_cache.py store \
-  --pdf-input "$PDF_INPUT" \
-  --page-sel "$page_sel"
+cache_dir=".study-assistant-cache"
+mkdir -p "$cache_dir"
+TMP_JSONL=".study-assistant-cache/.ocr-tmp.jsonl"
+
+pdfocr "$PDF_INPUT" --pages:"$page_sel" > "$TMP_JSONL"
+python3 scripts/ocr_cache.py validate --input-jsonl "$TMP_JSONL"
 ```
 
 Interpretation:
-- exit code `0`: all parsed pages succeeded; cache file stored
-- exit code `3`: OCR stream had page/parse errors; cache not stored (treat as miss)
+- exit code `0`: all parsed pages are valid `status:"ok"` with non-empty text
+- exit code `3`: OCR output is non-cacheable (page/parse errors or empty)
 - exit code `1` or `2`: runtime/argument error, stop and report
+
+Commit on valid output:
+
+```bash
+mv "$TMP_JSONL" "$RAW_PATH"
+```
+
+Cleanup on invalid output:
+
+```bash
+rm -f "$TMP_JSONL"
+```
 
 ## 4. Reuse Across Modes
 
