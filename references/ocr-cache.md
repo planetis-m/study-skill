@@ -41,16 +41,9 @@ Run OCR and pipe stdout directly into the cache script:
 
 ```bash
 set -o pipefail
-
-if [ "$page_sel" = "all-pages" ]; then
-  pdfocr "$PDF_INPUT" --all-pages | python3 scripts/ocr_cache.py store \
-    --pdf-input "$PDF_INPUT" \
-    --page-sel "$page_sel"
-else
-  pdfocr "$PDF_INPUT" --pages:"$page_sel" | python3 scripts/ocr_cache.py store \
-    --pdf-input "$PDF_INPUT" \
-    --page-sel "$page_sel"
-fi
+pdfocr "$PDF_INPUT" --pages:"$page_sel" | python3 scripts/ocr_cache.py store \
+  --pdf-input "$PDF_INPUT" \
+  --page-sel "$page_sel"
 ```
 
 ## 4. Reuse Across Modes
