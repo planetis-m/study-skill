@@ -58,9 +58,9 @@ def cmd_check(args: argparse.Namespace) -> int:
     return EXIT_OK if cache_hit else EXIT_CACHE_MISS
 
 
-def validate_jsonl_file(input_jsonl: Path) -> None:
-    saw_ok_text = False
-    with input_jsonl.open("r", encoding="utf-8") as handle:
+def parse_ok_texts(jsonl_path: Path) -> list[str]:
+    texts: list[str] = []
+    with jsonl_path.open("r", encoding="utf-8") as handle:
         for line_no, line in enumerate(handle, start=1):
             line = line.strip()
             if not line:
@@ -77,48 +77,36 @@ def validate_jsonl_file(input_jsonl: Path) -> None:
             text = obj.get("text")
             if not isinstance(text, str) or not text:
                 raise CacheCliError(f"Error: missing text in ok OCR record at line {line_no}", EXIT_CACHE_MISS)
-            saw_ok_text = True
+            texts.append(text)
 
-    if not saw_ok_text:
+    if not texts:
         raise CacheCliError("Error: OCR JSONL has no ok text.", EXIT_CACHE_MISS)
+
+    return texts
 
 
 def cmd_store(args: argparse.Namespace) -> int:
     _, raw_path = build_key_and_raw_path(args.pdf_input, args.page_sel)
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
-    tmp_jsonl: Path | None = None
-    committed = False
+
+    with tempfile.NamedTemporaryFile("wb", dir=CACHE_DIR, delete=False, prefix=".ocr-store.", suffix=".jsonl") as handle:
+        tmp_path = Path(handle.name)
+        for chunk in iter(lambda: sys.stdin.buffer.read(65536), b""):
+            handle.write(chunk)
 
     try:
-        with tempfile.NamedTemporaryFile("wb", dir=CACHE_DIR, delete=False, prefix=".ocr-store.", suffix=".jsonl") as handle:
-            tmp_jsonl = Path(handle.name)
-            while True:
-                chunk = sys.stdin.buffer.read(65536)
-                if not chunk:
-                    break
-                handle.write(chunk)
-
-        if tmp_jsonl is None:
-            raise CacheCliError("Error: failed to create temporary cache file.", EXIT_RUNTIME_ERROR)
-
-        try:
-            validate_jsonl_file(tmp_jsonl)
-        except CacheCliError as exc:
-            if exc.exit_code == EXIT_CACHE_MISS:
-                print(to_json({"stored": False}))
-                return EXIT_CACHE_MISS
-            raise
-
-        os.replace(tmp_jsonl, raw_path)
-        committed = True
-        print(to_json({"stored": True}))
-        return EXIT_OK
+        parse_ok_texts(tmp_path)
+        os.replace(tmp_path, raw_path)
+    except CacheCliError as exc:
+        if exc.exit_code == EXIT_CACHE_MISS:
+            print(to_json({"stored": False}))
+            return EXIT_CACHE_MISS
+        raise
     finally:
-        if tmp_jsonl is not None and not committed:
-            try:
-                tmp_jsonl.unlink()
-            except FileNotFoundError:
-                pass
+        tmp_path.unlink(missing_ok=True)
+
+    print(to_json({"stored": True}))
+    return EXIT_OK
 
 
 def cmd_read(args: argparse.Namespace) -> int:
@@ -126,33 +114,8 @@ def cmd_read(args: argparse.Namespace) -> int:
     if not raw_path.exists():
         raise CacheCliError(f"Error: raw cache file not found: {raw_path}", EXIT_CACHE_MISS)
 
-    ok_text_parts: list[str] = []
-
-    with raw_path.open("r", encoding="utf-8") as handle:
-        for line_no, line in enumerate(handle, start=1):
-            line = line.strip()
-            if not line:
-                continue
-
-            try:
-                obj = json.loads(line)
-            except json.JSONDecodeError as exc:
-                raise CacheCliError(f"Error: invalid cached JSONL at line {line_no}: {exc.msg}", EXIT_CACHE_MISS)
-
-            status = obj.get("status")
-            if status == "ok":
-                text = obj.get("text")
-                if isinstance(text, str) and text:
-                    ok_text_parts.append(text)
-                else:
-                    raise CacheCliError(f"Error: invalid cached ok record at line {line_no}", EXIT_CACHE_MISS)
-            else:
-                raise CacheCliError(f"Error: non-ok cached record at line {line_no}", EXIT_CACHE_MISS)
-
-    if not ok_text_parts:
-        raise CacheCliError("Error: cached OCR entry has no text.", EXIT_CACHE_MISS)
-
-    print(to_json({"ok_text_concat": "\n\n".join(ok_text_parts)}))
+    ok_texts = parse_ok_texts(raw_path)
+    print(to_json({"ok_text_concat": "\n\n".join(ok_texts)}))
     return EXIT_OK
 
 
