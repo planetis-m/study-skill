@@ -21,6 +21,27 @@ Map the user request to one mode:
 - `essay`: Generate 3-4 essay prompts and sample answers.
 - `study-notes`: End-to-end pipeline (OCR from PDF, then generate notes in one pass).
 
+## Session OCR Cache
+
+For PDF-based requests, avoid repeated OCR in the same session by using a local cache.
+
+- Cache directory: `.study-skill-cache` under current workspace.
+- Cache key inputs:
+  - Absolute PDF path
+  - Page selector (`all-pages` or explicit range string)
+  - Source file `mtime` and `size`
+- Cache files:
+  - `<key>.txt`: concatenated OCR text from successful pages
+  - `<key>.errors.txt`: page-level OCR failures, if any
+  - `<key>.meta`: key inputs for traceability
+
+Workflow:
+
+- Before OCR, follow [references/ocr-cache.md](references/ocr-cache.md) to check cache.
+- If cache hit, reuse cached text and skip `pdfocr`.
+- If cache miss, run `pdfocr`, parse JSONL, then write cache files for future mode requests.
+- Re-run OCR only when PDF changed or page selection changed.
+
 ## Process PDF Input
 
 If the source is a PDF, always run `pdfocr` through shell execution.
