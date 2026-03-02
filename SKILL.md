@@ -9,6 +9,10 @@ Follow this workflow exactly to convert lecture material into exam-ready outputs
 
 Absolute rule: for PDF inputs, never call `read_file` on `.pdf` files. Use shell checks plus `pdfocr` only.
 
+## Available scripts
+
+- `scripts/ocr_cache.py` - Manages OCR cache operations (`check`, `store`, `read`).
+
 ## Select Mode
 
 Map the user request to one mode:
@@ -27,15 +31,14 @@ Map the user request to one mode:
 For PDF-based requests, avoid repeated OCR in the same session by using a local cache.
 
 - Cache directory: `.study-assistant-cache` under current workspace.
-- Cache files:
-  - `current.raw.jsonl`: latest `pdfocr` output, one JSON object per page
-  - `current.meta`: latest request metadata (`pdf_input`, `page_sel`)
+- Raw JSONL entries: `.study-assistant-cache/<key>.jsonl`
 
 Workflow:
 
-- Before OCR, follow [references/ocr-cache.md](references/ocr-cache.md) to check cache.
+- Before OCR, run cache operations only through `python3 scripts/ocr_cache.py`.
+- Follow [references/ocr-cache.md](references/ocr-cache.md) for exact command sequence.
 - If cache hit, reuse cached JSONL and skip `pdfocr`.
-- If cache miss, run `pdfocr` and write raw JSONL cache for future mode requests.
+- If cache miss, pipe `pdfocr` output into `python3 scripts/ocr_cache.py store`
 - Re-run OCR when PDF path or page selection changed.
 
 ## Process PDF Input
@@ -66,7 +69,7 @@ Before first OCR call:
   - Treat each line as one JSON object.
   - Keep `"text"` only for records with `"status":"ok"`.
   - Report pages with `"status":"error"` but continue with successful pages.
-  - Read cached `.raw.jsonl` directly; do not generate extra parsed cache files.
+  - For cached OCR, use `python3 scripts/ocr_cache.py read` and consume its JSON output.
 
 ## Clean OCR Text
 

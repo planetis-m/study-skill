@@ -2,9 +2,9 @@
 
 Use this procedure for any mode that starts from a PDF.
 
-## 1. Set Cache Paths
+All cache functions must go through `python3 scripts/ocr_cache.py`.
 
-POSIX shell:
+## 1. Validate Input and Normalize Page Selection
 
 ```bash
 if [ ! -f "$PDF_INPUT" ]; then
@@ -12,10 +12,6 @@ if [ ! -f "$PDF_INPUT" ]; then
   exit 1
 fi
 
-cache_dir=".study-assistant-cache"
-mkdir -p "$cache_dir"
-cache_raw="$cache_dir/current.raw.jsonl"
-cache_meta="$cache_dir/current.meta"
 page_sel="$PAGE_SELECTION"
 if [ -z "$page_sel" ]; then
   page_sel="all-pages"
@@ -25,49 +21,57 @@ fi
 ## 2. Check Cache
 
 ```bash
-cache_hit="no"
-if [ -s "$cache_raw" ]; then
-  if [ -f "$cache_meta" ]; then
-    if grep -Fqx "pdf_input=$PDF_INPUT" "$cache_meta"; then
-      if grep -Fqx "page_sel=$page_sel" "$cache_meta"; then
-        cache_hit="yes"
-      fi
-    fi
-  fi
-fi
-if [ "$cache_hit" = "yes" ]; then
-  echo "OCR cache hit: $cache_raw"
-fi
+python3 scripts/ocr_cache.py check \
+  --pdf-input "$PDF_INPUT" \
+  --page-sel "$page_sel"
 ```
 
-If cache hit, skip `pdfocr`.
+Interpretation:
+- exit code `0`: cache hit, skip `pdfocr`
+- exit code `3`: cache miss, continue to step 3
+- exit code `1` or `2`: runtime/argument error, stop and report
+
+The command prints JSON to stdout with `cache_hit`, `key`, and `raw_path`.
 
 ## 3. Populate Cache on Miss
 
 Before running `pdfocr`, request user approval for unrestricted network execution.
 
-Write metadata, then run OCR:
+Run OCR and pipe stdout directly into the cache script:
 
 ```bash
-printf 'pdf_input=%s\npage_sel=%s\n' "$PDF_INPUT" "$page_sel" > "$cache_meta"
+set -o pipefail
+
 if [ "$page_sel" = "all-pages" ]; then
-  pdfocr "$PDF_INPUT" --all-pages > "$cache_raw"
+  pdfocr "$PDF_INPUT" --all-pages | python3 scripts/ocr_cache.py store \
+    --pdf-input "$PDF_INPUT" \
+    --page-sel "$page_sel"
 else
-  pdfocr "$PDF_INPUT" --pages:"$page_sel" > "$cache_raw"
+  pdfocr "$PDF_INPUT" --pages:"$page_sel" | python3 scripts/ocr_cache.py store \
+    --pdf-input "$PDF_INPUT" \
+    --page-sel "$page_sel"
 fi
 ```
 
 ## 4. Reuse Across Modes
 
 When user asks another mode for the same PDF/pages in the same session:
-- load `cache_raw`
-- read JSONL lines directly:
-  - use `status:"ok"` lines as content source (`text` field)
-  - report `status:"error"` lines with page/error info
-- do not rerun OCR unless cache miss
 
-## 5. Invalidation
+```bash
+python3 scripts/ocr_cache.py read \
+  --pdf-input "$PDF_INPUT" \
+  --page-sel "$page_sel"
+```
 
-Treat as miss when any of these change:
-- `PDF_INPUT` path
-- page selection
+Use the JSON response fields:
+- `ok_pages`: list of successful page text payloads
+- `error_pages`: list of OCR/page parsing errors
+- `ok_text_concat`: merged text from all `status:"ok"` records
+
+Do not rerun OCR unless `check` returns a miss (`exit 3`).
+
+## 5. Cache Layout
+
+- Raw JSONL entries: `.study-assistant-cache/<key>.jsonl`
+
+The key is derived from normalized `pdf_input + page_sel`.

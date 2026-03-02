@@ -25,8 +25,7 @@ The skill includes an OCR cache workflow to avoid re-running `pdfocr` for repeat
 
 - Cache reference: [references/ocr-cache.md](references/ocr-cache.md)
 - Cache location: `.study-assistant-cache/` in the current workspace
-- Cache format: `current.raw.jsonl` plus `current.meta`
-- Invalidation: PDF path or page selection changes
+- Cache files: `.study-assistant-cache/<key>.jsonl`
 
 ## Requirements
 
@@ -91,6 +90,7 @@ Use $study-assistant in quiz mode on this transcribed content: ...
 ## Skill Files
 
 - `SKILL.md`: main instructions and trigger metadata
+- `scripts/ocr_cache.py`: Python CLI for all OCR cache operations
 - `references/commands.md`: mode-specific generation rules
 - `references/pdfocr-install.md`: `pdfocr` install fallback
 - `references/ocr-cache.md`: avoid repeated OCR in same session
