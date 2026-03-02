@@ -1,5 +1,5 @@
 ---
-name: study-skill
+name: study-assistant
 description: Study assistant workflow for lecture-slide exam prep using the `pdfocr` CLI. Use when a task involves reading PDF slides, transcribing slide text, cleaning OCR output, and generating exam-focused deliverables such as study notes, lecture-style explanations, ELI5 explanations, flashcards, Mermaid mind maps, quizzes, essay questions, or one-step PDF-to-notes output.
 ---
 
@@ -25,7 +25,7 @@ Map the user request to one mode:
 
 For PDF-based requests, avoid repeated OCR in the same session by using a local cache.
 
-- Cache directory: `.study-skill-cache` under current workspace.
+- Cache directory: `.study-assistant-cache` under current workspace.
 - Cache key inputs:
   - Absolute PDF path
   - Page selector (`all-pages` or explicit range string)
