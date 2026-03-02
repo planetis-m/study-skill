@@ -99,6 +99,12 @@ Edit `config.json` in the same directory as the real `pdfocr` executable and set
 }
 ```
 
+### Credential detection rule
+
+- Resolve `command -v pdfocr` to its real target path.
+- Check `config.json` next to that real binary.
+- If the PATH entry is a symlink, do not check `config.json` in the symlink directory.
+
 ## Notes
 
 - Keep all extracted runtime files (`config.json`, `libpdfium`, and platform shared libs) with the real binary.

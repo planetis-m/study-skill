@@ -55,7 +55,8 @@ Before first OCR call:
 - If still missing, stop and report the failed install attempt plus the exact command/output.
 - Verify credentials:
   - Prefer `DEEPINFRA_API_KEY` environment variable.
-  - If env key is missing, allow `api_key` in `config.json` next to the real `pdfocr` binary.
+  - If env key is missing, resolve the real binary path first, then check `config.json` in that real binary directory.
+  - Do not check `config.json` next to a symlink wrapper path such as `$HOME/.local/bin/pdfocr`.
   - If neither is configured, stop and ask user for DeepInfra API key setup.
 - Ask user permission before every networked OCR execution:
   - Request unrestricted network/escalated execution first.
