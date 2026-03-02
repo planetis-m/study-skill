@@ -105,5 +105,5 @@ Edit `config.json` in the same directory as the real `pdfocr` executable and set
 - Keep all extracted runtime files (`config.json`, `libpdfium`, and platform shared libs) with the real binary.
 - Do not copy only `pdfocr`/`pdfocr.exe` into another directory without its bundled runtime files.
 - Ensure install targets are under user home (`$HOME/.local` or `%USERPROFILE%\.local`), not the current workspace.
-- If install fails, retry only under `$HOME/.local` (or `%USERPROFILE%\\.local` on Windows), never under the current project directory.
+- If install fails due to permission/sandbox restrictions, request escalated permission and retry.
 - If platform/architecture is unsupported, stop and ask the user for manual installation steps.
