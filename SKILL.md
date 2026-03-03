@@ -26,13 +26,10 @@ Map the user request to one mode:
 
 ## Session OCR Cache
 
-For PDF-based requests, avoid repeated OCR in the same session by using a local cache.
+For PDF-based requests, use the caching procedure to avoid repeated OCR execution.
 
-- Use only `python3 scripts/ocr_cache.py` for cache operations.
-- Follow [references/ocr-cache.md](references/ocr-cache.md) for the exact command sequence.
-- Re-run OCR only on cache miss or when PDF path/page selection changes.
-- Never use directory-listing tools to inspect the `.study-assistant-cache` directory.
-- Always execute from the user's current working directory. Do not `cd` into the skill directory.
+- Follow [references/ocr-cache.md](references/ocr-cache.md) exactly for the correct command sequence.
+- Always execute cache commands directly from your current working directory.
 
 ## Process PDF Input
 

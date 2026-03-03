@@ -34,5 +34,3 @@ pdfocr "path/to/file.pdf" <OCR_PAGE_ARG> | python3 <ABSOLUTE_PATH_TO_SKILL>/scri
 - `0`: The script will automatically format and print the extracted `<page>` text directly to stdout (skipping any broken pages). **Consume this printed text directly** for the requested study mode. (Do not run the `read` command).
 - `3`: OCR failed completely (no valid text). Stop and report the failure to the user.
 - `1` or `2`: Error. Stop and report.
-
-*(Note: Never use directory-listing tools to find the script or inspect the `.study-assistant-cache` directory. The Python script manages this internally).*
