@@ -56,11 +56,12 @@ Before first OCR call:
   - `pdfocr INPUT.pdf --all-pages`
 - If page ranges are provided, pass them to `pdfocr`:
   - `pdfocr INPUT.pdf --pages:"8-20,22-27"`
-- Parse stdout as JSONL:
-  - Treat each line as one JSON object.
-  - Keep `"text"` only for records with `"status":"ok"`.
-  - Report pages with `"status":"error"` but continue with successful pages.
-  - For cached OCR, use `python3 scripts/ocr_cache.py read` and consume the formatted text directly.
+- Obtain OCR Text:
+  - **Primary (Cache Hit / Clean Store):** Consume the formatted `<page>` text directly from `python3 scripts/ocr_cache.py read`.
+  - **Fallback (Partial/Error PDF):** If the cache `store` command refuses to save (returns code `3`), you must run `pdfocr` directly without the cache and parse its stdout as JSONL:
+    - Treat each line as one JSON object.
+    - Keep `"text"` only for records with `"status":"ok"`.
+    - Report pages with `"status":"error"` to the user, but continue generating the study material with the successful pages.
 
 ## Clean OCR Text
 

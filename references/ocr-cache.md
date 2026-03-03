@@ -1,12 +1,16 @@
 # OCR Cache Procedure
 
 Use this procedure for any mode that starts from a PDF to avoid redundant OCR execution.
-All cache operations must use `python3 scripts/ocr_cache.py`.
+
+**CRITICAL RULES:**
+- **Always execute from the user's current working directory.** 
+- **Do not `cd` into the skill directory.** The `.study-assistant-cache` folder must be created in the user's current workspace.
+- Resolve the absolute path to the skill's `scripts/ocr_cache.py` and run it from your current location.
 
 ## 1. Check Cache
 
 ```bash
-python3 scripts/ocr_cache.py check --pdf-input "path/to/file.pdf" --page-sel "1-5"
+python3 <ABSOLUTE_PATH_TO_SKILL>/scripts/ocr_cache.py check --pdf-input "path/to/file.pdf" --page-sel "1-5"
 ```
 *(Leave `--page-sel` empty or omit it for full documents).*
 
@@ -21,7 +25,7 @@ Run `pdfocr` and pipe its JSONL output directly into the `store` command.
 Use `--all-pages` if no page selection is provided, or `--pages:"..."` if a range is specified.
 
 ```bash
-pdfocr "path/to/file.pdf" <OCR_PAGE_ARG> | python3 scripts/ocr_cache.py store --pdf-input "path/to/file.pdf" --page-sel "1-5"
+pdfocr "path/to/file.pdf" <OCR_PAGE_ARG> | python3 <ABSOLUTE_PATH_TO_SKILL>/scripts/ocr_cache.py store --pdf-input "path/to/file.pdf" --page-sel "1-5"
 ```
 
 **Exit codes:**
@@ -32,7 +36,7 @@ pdfocr "path/to/file.pdf" <OCR_PAGE_ARG> | python3 scripts/ocr_cache.py store --
 ## 3. Read Cached Text
 
 ```bash
-python3 scripts/ocr_cache.py read --pdf-input "path/to/file.pdf" --page-sel "1-5"
+python3 <ABSOLUTE_PATH_TO_SKILL>/scripts/ocr_cache.py read --pdf-input "path/to/file.pdf" --page-sel "1-5"
 ```
 
 This will print the extracted document directly to stdout, organized with `<page>` markers. Consume this raw text directly for the requested study mode.
