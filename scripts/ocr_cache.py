@@ -19,12 +19,9 @@ EXIT_CACHE_MISS = 3
 CACHE_DIR = Path(".study-assistant-cache")
 DEFAULT_PAGE_SEL = "all-pages"
 
-def to_json(payload: object) -> str:
-    return json.dumps(payload, ensure_ascii=True, separators=(",", ":"))
-
 def build_key_and_raw_path(pdf_input: str, page_sel: str) -> tuple[str, Path]:
     if not pdf_input.strip():
-        print("Error: --pdf-input is required.", file=sys.stderr)
+        print("Error: --pdf-input cannot be empty.", file=sys.stderr)
         sys.exit(EXIT_INVALID_ARGS)
         
     pdf_norm = str(Path(pdf_input).expanduser().resolve())
@@ -34,40 +31,66 @@ def build_key_and_raw_path(pdf_input: str, page_sel: str) -> tuple[str, Path]:
     key = hashlib.sha256(seed).hexdigest()[:32]
     return key, CACHE_DIR / f"{key}.jsonl"
 
-def cmd_check(args: argparse.Namespace) -> int:
-    key, raw_path = build_key_and_raw_path(args.pdf_input, args.page_sel)
-    cache_hit = raw_path.exists() and raw_path.stat().st_size > 0
-    print(to_json({"cache_hit": cache_hit, "key": key, "raw_path": str(raw_path)}))
-    return EXIT_OK if cache_hit else EXIT_CACHE_MISS
-
-def cmd_store(args: argparse.Namespace) -> int:
-    _, raw_path = build_key_and_raw_path(args.pdf_input, args.page_sel)
-    CACHE_DIR.mkdir(parents=True, exist_ok=True)
-
-    data = sys.stdin.read()
-    lines = [line.strip() for line in data.splitlines() if line.strip()]
+def parse_lines(lines: list[str]) -> tuple[list[dict], bool]:
+    """Extracts valid pages and determines if the OCR run was perfect."""
+    pages = []
+    is_perfect = True
     
-    # NEW: Filter out bad pages instead of crashing
-    valid_lines = []
     for line in lines:
         try:
             obj = json.loads(line)
             if obj.get("status") == "ok" and obj.get("text"):
-                valid_lines.append(line)
+                pages.append(obj)
+            else:
+                is_perfect = False
         except Exception:
-            continue
+            is_perfect = False
+            
+    # Run is perfect only if every line is valid and there is at least one line
+    is_perfect = is_perfect and len(pages) == len(lines) and len(lines) > 0
+    return pages, is_perfect
 
-    if not valid_lines:
-        print(to_json({"stored": False}))
+def print_formatted(filename: str, pages: list[dict]) -> None:
+    """Outputs the LLM-friendly `<page>` format to stdout."""
+    result = [f"File: {filename} | Pages: {len(pages)}"]
+    for i, obj in enumerate(pages):
+        page_num = obj.get("page", i + 1)
+        text = obj.get("text", "").strip()
+        result.append(f"\n<page n={page_num}>\n{text}\n</page>")
+    print("\n".join(result))
+
+def cmd_check(args: argparse.Namespace) -> int:
+    key, raw_path = build_key_and_raw_path(args.pdf_input, args.page_sel)
+    cache_hit = raw_path.exists() and raw_path.stat().st_size > 0
+    
+    payload = {"cache_hit": cache_hit, "key": key, "raw_path": str(raw_path)}
+    print(json.dumps(payload, ensure_ascii=True, separators=(",", ":")))
+    return EXIT_OK if cache_hit else EXIT_CACHE_MISS
+
+def cmd_store(args: argparse.Namespace) -> int:
+    _, raw_path = build_key_and_raw_path(args.pdf_input, args.page_sel)
+    
+    data = sys.stdin.read()
+    lines = [line.strip() for line in data.splitlines() if line.strip()]
+    pages, is_perfect = parse_lines(lines)
+
+    if not pages:
+        print("Error: No valid text extracted.", file=sys.stderr)
         return EXIT_CACHE_MISS
 
-    # Atomic write to final cache path
-    with tempfile.NamedTemporaryFile("w", dir=CACHE_DIR, delete=False, prefix=".ocr-store.", suffix=".jsonl", encoding="utf-8") as f:
-        f.write("\n".join(valid_lines))
-        tmp_path = f.name
-        
-    os.replace(tmp_path, raw_path)
-    print(to_json({"stored": True}))
+    # Only cache if the run was 100% flawless to prevent poisoning
+    if is_perfect:
+        CACHE_DIR.mkdir(parents=True, exist_ok=True)
+        with tempfile.NamedTemporaryFile("w", dir=CACHE_DIR, delete=False, prefix=".ocr-store.", suffix=".jsonl", encoding="utf-8") as f:
+            f.write(data)
+            tmp_path = f.name
+        os.replace(tmp_path, raw_path)
+        print("Status: OCR perfect, cached.", file=sys.stderr)
+    else:
+        print(f"Status: OCR had errors, NOT cached (yielding {len(pages)} valid pages only).", file=sys.stderr)
+
+    # Always pass-through the formatted text to stdout
+    print_formatted(Path(args.pdf_input).name, pages)
     return EXIT_OK
 
 def cmd_read(args: argparse.Namespace) -> int:
@@ -77,22 +100,9 @@ def cmd_read(args: argparse.Namespace) -> int:
         return EXIT_CACHE_MISS
 
     lines = [line.strip() for line in raw_path.read_text(encoding="utf-8").splitlines() if line.strip()]
-    
-    filename = Path(args.pdf_input).name
-    total_pages = len(lines)
-    
-    result = [f"File: {filename} | Pages: {total_pages}"]
-    
-    for i, line in enumerate(lines):
-        obj = json.loads(line)
-        # Attempt to read 'page' from JSONL, fallback to index + 1 if absent
-        page_num = obj.get("page", i + 1)
-        text = obj.get("text", "").strip()
-        
-        result.append(f"\n<page n={page_num}>\n{text}\n</page>")
+    pages, _ = parse_lines(lines)
 
-    # Print pure formatted text for the LLM to read directly from stdout
-    print("\n".join(result))
+    print_formatted(Path(args.pdf_input).name, pages)
     return EXIT_OK
 
 def build_parser() -> argparse.ArgumentParser:

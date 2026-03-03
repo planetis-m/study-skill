@@ -10,11 +10,18 @@ python3 <ABSOLUTE_PATH_TO_SKILL>/scripts/ocr_cache.py check --pdf-input "path/to
 *(Leave `--page-sel` empty or omit it for full documents).*
 
 **Exit codes:**
-- `0`: Cache hit. Skip to **Step 3 (Read)**.
-- `3`: Cache miss. Continue to **Step 2 (Store)**.
+- `0`: Cache hit. Go to **Step 2A (Read Cache)**.
+- `3`: Cache miss. Go to **Step 2B (Run & Store)**.
 - `1` or `2`: Error. Stop and report.
 
-## 2. Populate Cache on Miss
+## 2A. Read Cache (On Hit)
+
+```bash
+python3 <ABSOLUTE_PATH_TO_SKILL>/scripts/ocr_cache.py read --pdf-input "path/to/file.pdf" --page-sel "1-5"
+```
+This will print the extracted document directly to stdout, organized with `<page>` markers. Consume this text directly for the requested study mode.
+
+## 2B. Run OCR & Store (On Miss)
 
 Run `pdfocr` and pipe its JSONL output directly into the `store` command. 
 Use `--all-pages` if no page selection is provided, or `--pages:"..."` if a range is specified.
@@ -24,16 +31,8 @@ pdfocr "path/to/file.pdf" <OCR_PAGE_ARG> | python3 <ABSOLUTE_PATH_TO_SKILL>/scri
 ```
 
 **Exit codes:**
-- `0`: OCR output was successfully cached. Continue to **Step 3 (Read)**.
-- `3`: OCR failed completely. Stop and report the failure to the user.
+- `0`: The script will automatically format and print the extracted `<page>` text directly to stdout (skipping any broken pages). **Consume this printed text directly** for the requested study mode. (Do not run the `read` command).
+- `3`: OCR failed completely (no valid text). Stop and report the failure to the user.
 - `1` or `2`: Error. Stop and report.
 
-## 3. Read Cached Text
-
-```bash
-python3 <ABSOLUTE_PATH_TO_SKILL>/scripts/ocr_cache.py read --pdf-input "path/to/file.pdf" --page-sel "1-5"
-```
-
-This will print the extracted document directly to stdout, organized with `<page>` markers. Consume this raw text directly for the requested study mode.
-
-*(Note: Do not rerun OCR unless `check` returns a miss (`3`). Do not attempt to read the internal cache files directly).*
+*(Note: Never use directory-listing tools to find the script or inspect the `.study-assistant-cache` directory. The Python script manages this internally).*
