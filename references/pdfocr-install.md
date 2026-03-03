@@ -64,7 +64,7 @@ pdfocr --help | Out-Null
 
 ## DeepInfra API key configuration
 
-`pdfocr` requires an API key. Do not attempt to read or verify keys yourself. If the tool reports an auth error, present these instructions to the user:
+`pdfocr` requires an API key. If the tool reports an auth error, present these instructions to the user:
 
 **Recommended: environment variable**
 Linux/macOS: `export DEEPINFRA_API_KEY="your_api_key"`
