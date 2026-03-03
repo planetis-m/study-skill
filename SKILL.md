@@ -7,10 +7,6 @@ description: Study assistant workflow for lecture-slide exam prep using the `pdf
 
 Follow this workflow exactly to convert lecture material into exam-ready outputs.
 
-## Available scripts
-
-- `scripts/ocr_cache.py` - Manages OCR cache operations (`check`, `store`, `read`).
-
 ## Select Mode
 
 Map the user request to one mode:
@@ -38,7 +34,7 @@ If the source is a PDF, always run `pdfocr` through shell execution.
 Before first OCR call:
 
 - Check availability with `command -v pdfocr`.
-- If `pdfocr` is missing, attempt install by following [references/pdfocr-install.md](references/pdfocr-install.md).
+- If `pdfocr` is missing, read the file `references/pdfocr-install.md` to attempt installation.
 - Install only to user-home absolute paths (`$HOME/.local/...`), never `./.local` in workspace.
 - Retry `command -v pdfocr` after installation.
 - If still missing, stop and report the failed install attempt plus the exact command/output.
