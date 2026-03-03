@@ -24,8 +24,8 @@ pdfocr "path/to/file.pdf" <OCR_PAGE_ARG> | python3 <ABSOLUTE_PATH_TO_SKILL>/scri
 ```
 
 **Exit codes:**
-- `0`: OCR output was clean and successfully cached. Continue to **Step 3 (Read)**.
-- `3`: OCR output is non-cacheable (page/parse errors).
+- `0`: OCR output was successfully cached. Continue to **Step 3 (Read)**.
+- `3`: OCR failed completely. Stop and report the failure to the user.
 - `1` or `2`: Error. Stop and report.
 
 ## 3. Read Cached Text

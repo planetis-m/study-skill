@@ -58,10 +58,6 @@ Before first OCR call:
   - `pdfocr INPUT.pdf --all-pages`
 - If page ranges are provided, pass them to `pdfocr`:
   - `pdfocr INPUT.pdf --pages:"8-20,22-27"`
-- Parse stdout as JSONL (Fallback only if cache `store` returns code 3):
-  - Treat each line as one JSON object.
-  - Keep `"text"` only for records with `"status":"ok"`.
-  - Report pages with `"status":"error"` but continue with successful pages.
 
 ## Clean OCR Text
 

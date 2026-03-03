@@ -47,22 +47,23 @@ def cmd_store(args: argparse.Namespace) -> int:
     data = sys.stdin.read()
     lines = [line.strip() for line in data.splitlines() if line.strip()]
     
-    if not lines:
-        print(to_json({"stored": False}))
-        return EXIT_CACHE_MISS
-
-    try:
-        for line in lines:
+    # NEW: Filter out bad pages instead of crashing
+    valid_lines = []
+    for line in lines:
+        try:
             obj = json.loads(line)
-            if obj.get("status") != "ok" or not obj.get("text"):
-                raise ValueError
-    except Exception:
+            if obj.get("status") == "ok" and obj.get("text"):
+                valid_lines.append(line)
+        except Exception:
+            continue
+
+    if not valid_lines:
         print(to_json({"stored": False}))
         return EXIT_CACHE_MISS
 
     # Atomic write to final cache path
     with tempfile.NamedTemporaryFile("w", dir=CACHE_DIR, delete=False, prefix=".ocr-store.", suffix=".jsonl", encoding="utf-8") as f:
-        f.write(data)
+        f.write("\n".join(valid_lines))
         tmp_path = f.name
         
     os.replace(tmp_path, raw_path)
