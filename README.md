@@ -1,84 +1,48 @@
 # Study Assistant Skill
 
-`study-assistant` is an installable Agent Skill for exam prep from lecture slides.
+`study-assistant` is an installable Agent Skill designed for exam prep from lecture slides. It is optimized for PDF slides and uses the `pdfocr` CLI to extract and process text.
 
-It provides one workflow with multiple modes:
-- `transcribe`
-- `analyze`
-- `lecture`
-- `eli5`
-- `flashcard`
-- `mindmap`
-- `quiz`
-- `essay`
-- `study-notes`
+## Features
 
-The skill is optimized for PDF slides via the `pdfocr` CLI.
+It provides a single workflow with multiple modes to help you study:
+- `transcribe`: Exact text transcription from slides.
+- `lecture`: Translates slides into a cohesive professor-style narrative.
+- `eli5`: Explains complex material in plain English.
+- `flashcard`: Generates concise, two-column flashcards.
+- `mindmap`: Generates Mermaid-syntax concept maps.
+- `quiz`: Creates practice questions and answer keys.
+- `essay`: Creates 3-4 essay prompts with sample answers.
+- `study-notes`: Generates structured, exam-focused study notes.
 
-## Permission Behavior
-
-For OCR runs, the skill is instructed to ask for unrestricted network permission before executing `pdfocr` (instead of running a failing sandbox probe first).
-
-## Session OCR Reuse
-
-The skill includes an OCR cache workflow to avoid re-running `pdfocr` for repeated mode requests on the same PDF/pages in one session.
-
-- Cache reference: [references/ocr-cache.md](references/ocr-cache.md)
-- Cache location: `.study-assistant-cache/` in the current workspace
-- Cache files: `.study-assistant-cache/<key>.jsonl`
-- Cached `read` output is minimal: `ok_text_concat` only.
-- Cache fill uses a pipe: stream `pdfocr` JSONL into `store`.
-- `store` validates and writes with internal temp-file + atomic replace.
-- Cache is written only for all-ok OCR runs.
-- If OCR has any page/parse error, cache is not written and the next run is a cache miss.
+*Note: The skill automatically caches OCR results locally during your session. If you run multiple modes on the same PDF, it reuses the text to save time and API costs.*
 
 ## Requirements
 
-- `pdfocr` must be installed and available on `PATH`
-- DeepInfra API key must be configured
-  - Recommended: `DEEPINFRA_API_KEY`
-  - Alternative: `api_key` in `config.json` next to `pdfocr`
-  - Precedence: env var overrides `config.json`
-  - Runtime flow is OCR-first: run OCR, then handle auth/config errors if reported
-  - Agents should not inspect env/profile/files to discover keys; they should only surface OCR auth errors and request user setup
+- **`pdfocr`**: The skill requires `pdfocr` to extract text. *(If it is missing, the agent will automatically attempt to install it for you).*
+- **DeepInfra API Key**: Required for the OCR engine.
+  - Set it via the `DEEPINFRA_API_KEY` environment variable (recommended).
+  - Alternatively, provide it via a `config.json` file next to the `pdfocr` executable.
 
-## Missing `pdfocr` Fallback
+## Installation
 
-The skill now includes dependency bootstrap instructions so an agent can attempt installation when `pdfocr` is missing.
-
-- See [references/pdfocr-install.md](references/pdfocr-install.md)
-- Flow used by the skill:
-1. `command -v pdfocr`
-2. If missing, run platform-specific install commands from the reference file
-3. Re-check `command -v pdfocr` and continue OCR only when available
-
-## Install In Codex
-
-Codex docs recommend installing non-built-in skills with `$skill-installer`.
-
-In Codex, prompt:
+### Using Codex
+Codex recommends installing non-built-in skills using the `$skill-installer`. Prompt Codex with:
 
 ```text
 $skill-installer install the skill from repo planetis-m/study-assistant with path .
 ```
+*(If the skill does not appear immediately, restart Codex).*
 
-Then restart Codex if the skill does not appear immediately.
-
-## Manual Install (Agent Skills Layout)
-
-Clone directly into a scanned skills path, for example:
+### Manual Install
+Clone directly into your agent's scanned skills path (e.g., `~/.agents/skills`):
 
 ```bash
 git clone https://github.com/planetis-m/study-assistant.git ~/.agents/skills/study-assistant
 ```
 
-Codex scans skill locations such as:
-- `REPO`: `.agents/skills` (from current directory up to repo root)
-- `USER`: `~/.agents/skills`
-
 ## Usage Examples
 
-Use explicit invocation with `$study-assistant` in your prompt.
+Invoke the skill explicitly using `$study-assistant` in your prompts:
 
 ```text
 Use $study-assistant in transcribe mode for lecture1.pdf and keep text verbatim.
@@ -91,12 +55,3 @@ Use $study-assistant in study-notes mode for lecture1.pdf.
 ```text
 Use $study-assistant in quiz mode on this transcribed content: ...
 ```
-
-## Skill Files
-
-- `SKILL.md`: main instructions and trigger metadata
-- `scripts/ocr_cache.py`: Python CLI for all OCR cache operations
-- `references/commands.md`: mode-specific generation rules
-- `references/pdfocr-install.md`: `pdfocr` install fallback
-- `references/ocr-cache.md`: avoid repeated OCR in same session
-- `agents/openai.yaml`: UI metadata and default prompt

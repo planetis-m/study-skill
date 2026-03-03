@@ -60,7 +60,7 @@ Before first OCR call:
   - Treat each line as one JSON object.
   - Keep `"text"` only for records with `"status":"ok"`.
   - Report pages with `"status":"error"` but continue with successful pages.
-  - For cached OCR, use `python3 scripts/ocr_cache.py read` and consume only `ok_text_concat`.
+  - For cached OCR, use `python3 scripts/ocr_cache.py read` and consume the formatted text directly.
 
 ## Clean OCR Text
 
