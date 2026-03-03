@@ -41,7 +41,7 @@ If the source is a PDF, always run `pdfocr` through shell execution.
 Before first OCR call:
 
 - Check availability with `command -v pdfocr`.
-- If `pdfocr` is missing, **only then** read [references/pdfocr-install.md](references/pdfocr-install.md) to attempt install. Do not read this file if `pdfocr` is already available.
+- If `pdfocr` is missing, attempt install by following [references/pdfocr-install.md](references/pdfocr-install.md).
 - Install only to user-home absolute paths (`$HOME/.local/...`), never `./.local` in workspace.
 - Retry `command -v pdfocr` after installation.
 - If still missing, stop and report the failed install attempt plus the exact command/output.
