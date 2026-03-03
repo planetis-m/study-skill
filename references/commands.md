@@ -7,7 +7,6 @@ Apply the rules in the selected section exactly.
 Goal: Convert PDF lecture slides into structured markdown while preserving educational text verbatim.
 
 Rules:
-- Use `pdfocr` JSONL extraction first.
 - Output educational text word-for-word.
 - Do not summarize, paraphrase, simplify, or shorten.
 - Preserve original bullet points as found in extracted text.
