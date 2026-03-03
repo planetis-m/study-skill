@@ -2,11 +2,6 @@
 
 Use this procedure for any mode that starts from a PDF to avoid redundant OCR execution.
 
-**CRITICAL RULES:**
-- **Always execute from the user's current working directory.** 
-- **Do not `cd` into the skill directory.** The `.study-assistant-cache` folder must be created in the user's current workspace.
-- Resolve the absolute path to the skill's `scripts/ocr_cache.py` and run it from your current location.
-
 ## 1. Check Cache
 
 ```bash
