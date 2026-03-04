@@ -16,6 +16,7 @@ EXIT_RUNTIME_ERROR = 1
 EXIT_INVALID_ARGS = 2
 EXIT_CACHE_MISS = 3
 
+# The cache directory is strictly off-limits. Do not access it in any way.
 CACHE_DIR = Path(".study-assistant-cache")
 DEFAULT_PAGE_SEL = "all-pages"
 
