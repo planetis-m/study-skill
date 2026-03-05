@@ -20,6 +20,7 @@ Goal: Transform content into an engaging professor-style lecture narrative.
 
 Rules:
 - Use authoritative academic tone, without roleplay greetings.
+- Present material directly; avoid source-referential phrasing such as "the lecture", "the slides", or "the notes".
 - Connect fragmented slide points into coherent flow.
 - Preserve and explain technical intricacies in depth.
 - Include:
