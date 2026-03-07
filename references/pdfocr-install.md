@@ -7,7 +7,7 @@ Path policy:
 - Never install into a relative workspace path such as `./.local/...`.
 - Never create `.local` under the current project directory.
 
-As of February 28, 2026 (`pdfocr` v0.2.6), release assets exist for:
+As of March 6, 2026 (`pdfocr` v0.3.0), release assets exist for:
 - Linux `x86_64`
 - macOS `arm64`
 - Windows `x86_64`

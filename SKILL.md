@@ -34,6 +34,8 @@ Never read PDFs with direct file readers or ad-hoc parsers.
 
 ### Installation
 
+Run the installation steps only when cache misses, before Step 2.
+
 - Check with `command -v pdfocr`.
 - If missing, read `references/pdfocr-install.md` and attempt installation.
 - Retry `command -v pdfocr` after installation. If still missing, stop and report.
