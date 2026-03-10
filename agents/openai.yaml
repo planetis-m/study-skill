@@ -1,4 +1,4 @@
 interface:
   display_name: "Study Assistant"
-  short_description: "OCR lecture PDFs into exam study outputs"
-  default_prompt: "Use $study-assistant to extract text from lecture PDFs with pdfocr and produce exam-focused notes, quizzes, flashcards, mindmaps, or essay practice."
+  short_description: "Turn study material into exam-focused outputs"
+  default_prompt: "Use $study-assistant to turn this study material into exam-focused notes, quizzes, flashcards, mindmaps, essay practice, or a lecture-style explanation."

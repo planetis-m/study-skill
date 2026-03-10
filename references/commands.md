@@ -4,7 +4,7 @@ Apply the rules in the selected section exactly.
 
 ## transcribe
 
-Goal: Convert PDF lecture slides into structured markdown while preserving educational text verbatim.
+Goal: Convert provided study material into structured markdown while preserving educational text verbatim.
 
 Rules:
 - Output educational text word-for-word.

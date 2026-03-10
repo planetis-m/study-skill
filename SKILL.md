@@ -1,17 +1,17 @@
 ---
 name: study-assistant
-description: Study assistant workflow for lecture-slide exam prep using the `pdfocr` CLI. Use when a task involves reading PDF slides, transcribing slide text, and generating exam-focused deliverables such as study notes, lecture-style explanations, ELI5 explanations, flashcards, Mermaid mind maps, quizzes, and essay questions.
+description: Study assistant workflow for turning provided study material into exam-focused deliverables such as verbatim transcriptions, study notes, lecture-style explanations, ELI5 explanations, flashcards, Mermaid mind maps, quizzes, and essay questions.
 ---
 
 # Study Assistant
 
-Follow this workflow exactly to convert lecture material into exam-ready outputs.
+Follow this workflow exactly to turn provided study material into exam-ready outputs.
 
 ## Select Mode
 
 Map the user request to one mode:
 
-- `transcribe`: Convert PDF slides into markdown while keeping educational text verbatim.
+- `transcribe`: Convert provided source text into structured markdown while keeping educational text verbatim.
 - `lecture`: Turn provided content into cohesive professor-style teaching narrative.
 - `eli5`: Explain provided material in plain English while keeping technical depth.
 - `flashcard`: Generate two-column markdown flashcards.
@@ -20,40 +20,14 @@ Map the user request to one mode:
 - `essay`: Generate 3-4 essay prompts and sample answers.
 - `study-notes`: Generate study notes from provided content.
 
-## Session OCR Cache
+## Prepare Source Material
 
-For PDF-based requests, use the caching procedure to avoid repeated OCR execution.
+Work only from material already present in the conversation or otherwise already extracted into text.
 
-- Follow [references/ocr-cache.md](references/ocr-cache.md) exactly for the correct command sequence.
-- Always execute cache commands directly from your current working directory.
+- If the source still needs to be converted into text, use a separate extraction step before applying this skill.
+- Do not prescribe any specific extraction method or file-format tool here.
 
-## Process PDF Input
-
-If the source is a PDF, extract text exclusively through `pdfocr` shell execution.
-Never read PDFs with direct file readers or ad-hoc parsers.
-
-### Installation
-
-Run the installation steps only when cache misses, before Step 2.
-
-- Check with `command -v pdfocr`.
-- If missing, read `references/pdfocr-install.md` and attempt installation.
-- Retry `command -v pdfocr` after installation. If still missing, stop and report.
-
-### Execution
-
-- Request unrestricted network/escalated execution directly in the tool call.
-  Do not run a sandboxed `pdfocr` attempt as a probe.
-- Do not inspect environment variables, shell profiles, or filesystem files to discover API keys.
-  If OCR reports an auth/config failure, report the error and ask the user to configure
-  `DEEPINFRA_API_KEY` or `config.json`, then retry.
-
-### Usage
-
-- Full document: `pdfocr INPUT.pdf --all-pages`
-- Page ranges: `pdfocr INPUT.pdf --pages:"8-20,22-27"`
-
-## Clean OCR Text
+## Clean Source Text
 
 Before generation, remove only clear metadata:
 
@@ -71,7 +45,7 @@ Read and apply mode-specific rules from [references/commands.md](references/comm
 
 Global rules across all modes:
 
-- Base all factual content only on user-provided material and extracted OCR text.
+- Base all factual content only on user-provided material and prepared source text.
 - Do not add outside facts, theories, examples, or claims.
 - Do not mention the source material. Present content directly.
 - Use markdown output.

@@ -1,12 +1,12 @@
 # Study Assistant Skill
 
-`study-assistant` is an installable Agent Skill designed for exam prep from lecture slides. It is optimized for PDF slides and uses the `pdfocr` CLI to extract and process text.
+`study-assistant` is an installable Agent Skill for exam prep from study material that is already available as text.
 
 ## Features
 
 It provides a single workflow with multiple modes to help you study:
-- `transcribe`: Exact text transcription from slides.
-- `lecture`: Translates slides into a cohesive professor-style narrative.
+- `transcribe`: Exact text transcription from provided material.
+- `lecture`: Translates provided material into a cohesive professor-style narrative.
 - `eli5`: Explains complex material in plain English.
 - `flashcard`: Generates concise, two-column flashcards.
 - `mindmap`: Generates Mermaid-syntax concept maps.
@@ -14,14 +14,7 @@ It provides a single workflow with multiple modes to help you study:
 - `essay`: Creates 3-4 essay prompts with sample answers.
 - `study-notes`: Generates structured, exam-focused study notes.
 
-*Note: The skill automatically caches OCR results locally during your session. If you run multiple modes on the same PDF, it reuses the text to save time and API costs.*
-
-## Requirements
-
-- **`pdfocr`**: The skill requires `pdfocr` to extract text. *(If it is missing, the agent will automatically attempt to install it for you).*
-- **DeepInfra API Key**: Required for the OCR engine.
-  - Set it via the `DEEPINFRA_API_KEY` environment variable (recommended).
-  - Alternatively, provide it via a `config.json` file next to the `pdfocr` executable.
+If the source material is not yet available as text, run a separate extraction step before invoking `study-assistant`.
 
 ## Installation
 
@@ -45,11 +38,11 @@ git clone https://github.com/planetis-m/study-assistant.git ~/.agents/skills/stu
 Invoke the skill explicitly using `$study-assistant` in your prompts:
 
 ```text
-Use $study-assistant in transcribe mode for lecture1.pdf and keep text verbatim.
+Use $study-assistant in transcribe mode on this extracted lecture text and keep it verbatim.
 ```
 
 ```text
-Use $study-assistant in study-notes mode for lecture1.pdf.
+Use $study-assistant in study-notes mode on this extracted lecture text.
 ```
 
 ```text
