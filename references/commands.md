@@ -16,18 +16,25 @@ Rules:
 
 ## lecture
 
-Goal: Transform content into an engaging professor-style lecture narrative.
+Goal: Deliver the material as a coherent professor-style lecture.
 
 Rules:
-- Use authoritative academic tone, without roleplay greetings.
-- Present material directly; avoid source-referential phrasing such as "the lecture", "the slides", or "the notes".
-- Connect fragmented slide points into coherent flow.
-- Preserve and explain technical intricacies in depth.
+- Write in lecturer voice, as if teaching students directly in a university class.
+- Sound academically precise, but teachable and spoken rather than like commentary on notes.
+- State ideas directly. Never describe what "the material," "content," "slides," "notes," or "lecture" say.
+- Do not frame the output as a study guide, recap, annotated summary, or commentary on source text.
+- Turn fragmented points into one continuous explanatory narrative with smooth transitions.
+- Prefer developed paragraphs; use bullets only when they are genuinely the clearest format.
+- Build progressively: frame the central problem, define key concepts, mark important distinctions, then move into the harder ideas.
+- Preserve full technical depth and explain intricate points clearly.
+- Make likely points of confusion explicit, especially where similar terms or theories can be mistaken for one another.
+- Keep the narrative cumulative so each section advances the argument instead of reading like isolated blocks.
 - Include:
-  - Topic framing
-  - Connected narrative across ideas
-  - Deep dive on hardest concepts
-  - Final synthesis of the big picture
+  - a clear opening frame of the topic and its central question
+  - direct exposition of the concepts in lecturer voice
+  - transitions that show how each idea leads to the next
+  - deeper treatment of the hardest concepts, mechanisms, or contrasts
+  - a closing synthesis of the larger picture
 
 ## eli5
 
