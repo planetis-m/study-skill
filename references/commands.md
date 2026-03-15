@@ -16,25 +16,20 @@ Rules:
 
 ## lecture
 
-Goal: Deliver the material as a coherent professor-style lecture.
+Goal: Transform content into an engaging professor-style lecture narrative.
 
 Rules:
-- Write in lecturer voice, as if teaching students directly in a university class.
-- Sound academically precise, but teachable and spoken rather than like commentary on notes.
-- State ideas directly. Never describe what "the material," "content," "slides," "notes," or "lecture" say.
-- Do not frame the output as a study guide, recap, annotated summary, or commentary on source text.
-- Turn fragmented points into one continuous explanatory narrative with smooth transitions.
-- Prefer developed paragraphs; use bullets only when they are genuinely the clearest format.
-- Build progressively: frame the central problem, define key concepts, mark important distinctions, then move into the harder ideas.
-- Preserve full technical depth and explain intricate points clearly.
-- Make likely points of confusion explicit, especially where similar terms or theories can be mistaken for one another.
-- Keep the narrative cumulative so each section advances the argument instead of reading like isolated blocks.
+- Use authoritative academic tone, but do not roleplay or address students directly.
+- Present material directly; avoid source-referential phrasing such as "the lecture", "the slides", "the notes", or "the material".
+- Connect fragmented points into a coherent explanatory flow with smooth transitions.
+- Prefer developed paragraphs over bullet-heavy output unless bullets are clearly the best format.
+- Preserve technical depth and explain difficult concepts or distinctions clearly.
+- Keep the narrative cumulative so each section builds on what came before.
 - Include:
-  - a clear opening frame of the topic and its central question
-  - direct exposition of the concepts in lecturer voice
-  - transitions that show how each idea leads to the next
-  - deeper treatment of the hardest concepts, mechanisms, or contrasts
-  - a closing synthesis of the larger picture
+  - Topic framing
+  - Connected narrative across ideas
+  - Deep dive on hardest concepts or contrasts
+  - Final synthesis of the big picture
 
 ## eli5
 
